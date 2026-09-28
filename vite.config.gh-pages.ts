@@ -25,7 +25,7 @@ export default defineConfig({
     },
   },
   nitro: false,
-    preset: "static",
+  extra: {
     output: {
       dir: "dist-gh-pages",
       publicDir: "dist-gh-pages/public",

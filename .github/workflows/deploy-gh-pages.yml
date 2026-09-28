@@ -1,0 +1,58 @@
+name: Deploy static export to GitHub Pages
+
+# Builds the app as a fully static site (SPA shell + prerendered HTML for
+# every route) and publishes it to GitHub Pages. This build does not use the
+# Cloudflare SSR target from vite.config.ts — see vite.config.gh-pages.ts.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Determine base path
+        id: base
+        run: |
+          # A user/org site repo (<user>.github.io) is served at the domain
+          # root; any other repo lives under /<repo>/.
+          if [[ "${GITHUB_REPOSITORY##*/}" == *.github.io ]]; then
+            echo "path=/" >> "$GITHUB_OUTPUT"
+          else
+            echo "path=/${GITHUB_REPOSITORY##*/}/" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build static export
+        run: bun run build:gh-pages
+        env:
+          GH_PAGES_BASE: ${{ steps.base.outputs.path }}
+
+      - name: SPA fallback for unknown paths
+        run: cp dist/client/index.html dist/client/404.html
+
+      - name: Disable Jekyll processing
+        run: touch dist/client/.nojekyll
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/client
+
+      - uses: actions/deploy-pages@v4

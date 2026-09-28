@@ -24,7 +24,7 @@ export default defineConfig({
       prerender: { enabled: false, crawlLinks: false, outputPath: "index.html" },
     },
   },
-  nitro: {
+  nitro: false,
     preset: "static",
     output: {
       dir: "dist-gh-pages",

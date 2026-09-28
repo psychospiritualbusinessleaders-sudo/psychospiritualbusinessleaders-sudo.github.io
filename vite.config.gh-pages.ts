@@ -2,11 +2,11 @@
 //
 // The main vite.config.ts targets Cloudflare Workers (SSR) for Lovable
 // publishing. GitHub Pages serves static files only, so this config enables
-// TanStack Start SPA mode (a static app shell rendered at build time, app
-// routing handled entirely client-side) with Nitro's `static` preset, which
-// emits a pure static directory. It is used exclusively by the GitHub Actions
-// workflow (`.github/workflows/deploy-gh-pages.yml`); the Lovable build never
-// touches it.
+// TanStack Start SPA mode with full prerendering: every route is rendered to
+// its own static HTML file at build time (links are crawled), and Nitro is
+// skipped entirely since no server is needed. It is used exclusively by the
+// GitHub Actions workflow (`.github/workflows/deploy-gh-pages.yml`); the
+// Lovable build never touches it.
 //
 // Base path: a GitHub Pages *project* site is served under `/<repo>/`, so the
 // workflow sets GH_PAGES_BASE (e.g. "/vireo/"). User-site repos
@@ -21,16 +21,14 @@ export default defineConfig({
     spa: {
       enabled: true,
       maskPath: "/",
-      prerender: { enabled: false, crawlLinks: false, outputPath: "index.html" },
+      prerender: {
+        enabled: true,
+        crawlLinks: true,
+        outputPath: "index.html",
+      },
     },
   },
   nitro: false,
-  extra: {
-    output: {
-      dir: "dist-gh-pages",
-      publicDir: "dist-gh-pages/public",
-    },
-  },
   vite: {
     base,
   },
